@@ -342,15 +342,23 @@ class QuizQuestionAssistant {
 
   // Send question to backend via background script
   async sendQuestionToBackend(questionId, questionText, prompt, assignmentId) {
-    // Log the data being sent
-    console.log("📤 QUIZ ASSISTANT - Sending to background script:", {
-      action: "processQuizPrompt",
+    // Prepare the payload that will be sent to backend
+    const backendPayload = {
+      prompt: prompt,
       questionId: questionId,
       questionText: questionText,
-      prompt: prompt,
       assignmentId: assignmentId,
-      settings: {},
-    });
+      settings: {}
+    };
+
+    // Log detailed request information
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("📤 QUIZ ASSISTANT - SENDING REQUEST");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🎯 Endpoint: POST http://localhost:5000/api/quiz/process-prompt");
+    console.log("📦 Request Body (JSON):");
+    console.log(JSON.stringify(backendPayload, null, 2));
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(
@@ -364,15 +372,23 @@ class QuizQuestionAssistant {
         },
         (response) => {
           if (chrome.runtime.lastError) {
+            console.log("❌ Chrome Runtime Error:", chrome.runtime.lastError);
             reject(chrome.runtime.lastError);
           } else {
+            // Log the response received
+            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            console.log("📥 RESPONSE RECEIVED");
+            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            console.log("Response:", JSON.stringify(response, null, 2));
+            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
             // Check if backend failed - if so, use demo mode
             if (
               !response.success &&
               response.message &&
               response.message.includes("Failed to connect to backend")
             ) {
-              console.log("Backend unavailable, using DEMO MODE");
+              console.log("⚠️  Backend unavailable, using DEMO MODE");
               resolve(this.getDemoResponse(questionText, prompt));
             } else {
               resolve(response);
