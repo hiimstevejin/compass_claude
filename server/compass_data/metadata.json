@@ -1,0 +1,44 @@
+{
+  "test_biology_quiz": {
+    "created_at": "2025-11-15T16:40:02.930308",
+    "course": "BIO 201 - Updated",
+    "professor": "Dr. Smith",
+    "description": "",
+    "exam_content": "Updated content"
+  },
+  "test_algorithms_homework": {
+    "created_at": "2025-11-15T16:39:04.956753",
+    "course": "CS 301 - Algorithms",
+    "professor": "Dr. Johnson",
+    "description": "",
+    "exam_content": "Implement quicksort and analyze its time complexity"
+  },
+  "test_minimal_quiz": {
+    "created_at": "2025-11-15T16:39:32.864660",
+    "course": "",
+    "professor": "",
+    "description": "",
+    "exam_content": ""
+  },
+  "test_complex_math": {
+    "created_at": "2025-11-15T16:40:47.542518",
+    "course": "MATH 251 - Calculus II",
+    "professor": "Dr. Williams",
+    "description": "",
+    "exam_content": "\n            Final Exam - Calculus II\n            1-5: Integration problems\n            6-10: Derivative problems  \n            11: Continuity proof\n            12-15: Word problems\n            "
+  },
+  "assignment_new_1763246337621": {
+    "created_at": "2025-11-15T17:39:26.821064",
+    "course": "Default Grading Scheme",
+    "professor": "",
+    "description": "",
+    "exam_content": ""
+  },
+  "quiz_155651": {
+    "created_at": "2025-11-15T17:44:19.354566",
+    "course": "Quiz Title *\n          \n        \n          \n            AI Assistant\n            \u2212\n          \n\n          \n            \n              \n                AI Role:\n                Example: AI acts as the CFO of Anthropic for student consulting project\n              \n              Teaching Assistant that guides students without telling them the answer.\n            \n\n            \n              \n                Boundaries - What AI Can Tell Students:\n                Define what information the AI is allowed to share with students\n              \n              \n            \n\n            \n              \n                Additional Instructions (Optional):\n                Any other specific instructions for the AI\n              \n              \n            \n\n            Sending...\n\n            Sending prompt to backend...\n          \n        \n      Launch Design Tools Alt/Option+Shift+DSwitch between sidebar and editor Alt/Option+Shift+E\n          \n            \n            \n          \n       DesignPLUS QuickStart Wizard",
+    "professor": "",
+    "description": "",
+    "exam_content": ""
+  }
+}
