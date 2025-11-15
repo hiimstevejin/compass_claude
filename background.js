@@ -217,27 +217,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
-// Example: Create context menu item
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: 'myExtensionAction',
-    title: 'My Extension Action',
-    contexts: ['selection']
-  });
-});
-
-// Handle context menu clicks
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === 'myExtensionAction') {
-    console.log('Selected text:', info.selectionText);
-
-    // Send to content script
-    chrome.tabs.sendMessage(tab.id, {
-      action: 'contextMenuClicked',
-      text: info.selectionText
-    });
-  }
-});
+// Context menu code removed - not needed for quiz functionality
 
 // Example: Set badge text
 function updateBadge(text, color = '#FF0000') {
