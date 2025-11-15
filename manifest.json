@@ -25,6 +25,16 @@
       "matches": ["<all_urls>"],
       "js": ["content.js", "quiz-question/quiz-question.js"],
       "css": ["content.css", "quiz-question/quiz-question.css"]
+      "js": ["content.js"],
+      "css": ["content.css"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "instructor-settings/inject-prompt-box.js",
+        "instructor-settings/instructor-content.js"
+      ],
+      "css": ["instructor-settings/inject-prompt-box.css"]
     }
   ],
   "permissions": [
@@ -36,5 +46,15 @@
     "https://localhost:*/*",
     "http://*/*",
     "https://*/*"
+    "http://localhost:3000/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "instructor-settings/inject-prompt-box.css",
+        "instructor-settings/inject-prompt-box.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ]
 }
