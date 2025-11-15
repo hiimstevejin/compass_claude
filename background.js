@@ -155,6 +155,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keep message channel open for async response
   }
 
+  if (request.action === 'createPrompt') {
+    // Handle prompt creation - send to backend server
+    console.log('Creating prompt:', request);
+
+    const payload = {
+      assignment_id: request.assignment_id,
+      professor_instructions: request.professor_instructions,
+      metadata: request.metadata || {}
+    };
+
+    makeBackendRequest(CONFIG.ENDPOINTS.CREATE_PROMPT, payload)
+      .then(result => {
+        if (result.success) {
+          sendResponse({
+            success: true,
+            data: result.data
+          });
+        } else {
+          sendResponse({
+            success: false,
+            message: result.message
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error creating prompt:', error);
+        sendResponse({
+          success: false,
+          message: 'An error occurred while creating the prompt.'
+        });
+      });
+
+    return true; // Keep message channel open for async response
+  }
+
   // Return true to indicate async response
   return true;
 });
