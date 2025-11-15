@@ -1,5 +1,42 @@
 // Background service worker for Chrome Extension
 
+// Import configuration
+importScripts('config.js');
+
+// Helper function to make API requests to backend
+async function makeBackendRequest(endpoint, data, method = 'POST') {
+  const url = `${CONFIG.BACKEND_URL}${endpoint}`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
+
+    const response = await fetch(url, {
+      method: method,
+      headers: CONFIG.DEFAULT_HEADERS,
+      body: JSON.stringify(data),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return { success: true, data: result };
+
+  } catch (error) {
+    console.error('Backend request failed:', error);
+    return {
+      success: false,
+      error: error.message,
+      message: 'Failed to connect to backend server. Please check if the server is running.'
+    };
+  }
+}
+
 // Extension installation or update
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
@@ -31,29 +68,74 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === 'processQuizPrompt') {
-    // Handle quiz prompt - integrate with AI service here
+    // Handle quiz prompt - send to backend server
     console.log('Processing quiz prompt:', request);
 
-    // Placeholder response - integrate with your AI service
-    const demoResponse = `Based on your question about "${request.questionText.substring(0, 50)}...", here's a hint: Consider the key concepts and how they relate to each other.`;
+    const payload = {
+      prompt: request.prompt,
+      questionId: request.questionId,
+      questionText: request.questionText,
+      settings: request.settings
+    };
 
-    sendResponse({
-      success: true,
-      message: demoResponse
-    });
+    makeBackendRequest(CONFIG.ENDPOINTS.PROCESS_PROMPT, payload)
+      .then(result => {
+        if (result.success) {
+          sendResponse({
+            success: true,
+            message: result.data.message || result.data.response
+          });
+        } else {
+          sendResponse({
+            success: false,
+            message: result.message
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error processing prompt:', error);
+        sendResponse({
+          success: false,
+          message: 'An error occurred while processing your prompt.'
+        });
+      });
+
+    return true; // Keep message channel open for async response
   }
 
   if (request.action === 'evaluateAnswer') {
-    // Handle answer evaluation - integrate with AI service here
+    // Handle answer evaluation - send to backend server
     console.log('Evaluating answer:', request);
 
-    // Placeholder response - integrate with your AI service
-    const demoFeedback = 'Good effort! Your answer demonstrates understanding of the core concepts. Consider providing more specific examples to strengthen your response.';
+    const payload = {
+      questionText: request.questionText,
+      answer: request.answer,
+      settings: request.settings
+    };
 
-    sendResponse({
-      success: true,
-      feedback: demoFeedback
-    });
+    makeBackendRequest(CONFIG.ENDPOINTS.EVALUATE_ANSWER, payload)
+      .then(result => {
+        if (result.success) {
+          sendResponse({
+            success: true,
+            feedback: result.data.feedback || result.data.message
+          });
+        } else {
+          sendResponse({
+            success: false,
+            feedback: result.message
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error evaluating answer:', error);
+        sendResponse({
+          success: false,
+          feedback: 'An error occurred while evaluating your answer.'
+        });
+      });
+
+    return true; // Keep message channel open for async response
   }
 
   // Return true to indicate async response

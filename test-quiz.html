@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canvas Quiz Test Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .quiz-header {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .quiz-header h1 {
+      margin: 0 0 10px 0;
+      color: #2d3748;
+    }
+
+    .quiz-header p {
+      margin: 0;
+      color: #6c757d;
+    }
+
+    .question {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-left: 4px solid #0374B5;
+    }
+
+    .question_text {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #2d3748;
+    }
+
+    .question_options {
+      margin-top: 10px;
+    }
+
+    .question_option {
+      padding: 10px;
+      margin: 8px 0;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .question_option:hover {
+      background: #e9ecef;
+      border-color: #0374B5;
+    }
+
+    .question_option input {
+      margin-right: 10px;
+    }
+
+    .instructions {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+
+    .instructions h3 {
+      margin-top: 0;
+      color: #856404;
+    }
+
+    .instructions ol {
+      margin-bottom: 0;
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin: 5px 0;
+      color: #856404;
+    }
+
+    .quiz-footer {
+      background: white;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .submit-quiz {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .submit-quiz:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-header">
+    <h1>Sample Canvas Quiz - Testing Quiz Assistant</h1>
+    <p>Time Remaining: 60:00 | Points: 10</p>
+  </div>
+
+  <div class="instructions">
+    <h3>📋 Testing Instructions:</h3>
+    <ol>
+      <li>Make sure the Chrome extension is loaded and enabled</li>
+      <li>Reload this page after loading the extension</li>
+      <li>You should see a blue "💡 Ask a question about this problem" box appear below each question</li>
+      <li>Click on the box to expand it and test the functionality</li>
+      <li>The extension will work in DEMO MODE (no backend required)</li>
+    </ol>
+  </div>
+
+  <div class="question" id="question-1" data-question-id="q1">
+    <div class="question_text">
+      Question 1: What is the time complexity of binary search on a sorted array of n elements?
+    </div>
+    <div class="question_options">
+      <div class="question_option">
+        <input type="radio" name="q1" value="a" id="q1-a">
+        <label for="q1-a">O(n)</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q1" value="b" id="q1-b">
+        <label for="q1-b">O(log n)</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q1" value="c" id="q1-c">
+        <label for="q1-c">O(n log n)</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q1" value="d" id="q1-d">
+        <label for="q1-d">O(n²)</label>
+      </div>
+    </div>
+  </div>
+
+  <div role="presentation" class="overlay endEditingTrigger css-1pjwd5q" data-automation="sdk-overlay">
+    <div class="question" id="question-2" data-question-id="q2">
+      <div class="question_text">
+        Question 2: Which data structure uses LIFO (Last In First Out) principle?
+      </div>
+      <div class="question_options">
+        <div class="question_option">
+          <input type="radio" name="q2" value="a" id="q2-a">
+          <label for="q2-a">Queue</label>
+        </div>
+        <div class="question_option">
+          <input type="radio" name="q2" value="b" id="q2-b">
+          <label for="q2-b">Stack</label>
+        </div>
+        <div class="question_option">
+          <input type="radio" name="q2" value="c" id="q2-c">
+          <label for="q2-c">Array</label>
+        </div>
+        <div class="question_option">
+          <input type="radio" name="q2" value="d" id="q2-d">
+          <label for="q2-d">Linked List</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="question" id="question-3" data-question-id="q3">
+    <div class="question_text">
+      Question 3: In object-oriented programming, what is the concept of hiding internal implementation details and showing only necessary information to the user?
+    </div>
+    <div class="question_options">
+      <div class="question_option">
+        <input type="radio" name="q3" value="a" id="q3-a">
+        <label for="q3-a">Inheritance</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q3" value="b" id="q3-b">
+        <label for="q3-b">Polymorphism</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q3" value="c" id="q3-c">
+        <label for="q3-c">Encapsulation</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q3" value="d" id="q3-d">
+        <label for="q3-d">Abstraction</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="question" id="question-4" data-question-id="q4">
+    <div class="question_text">
+      Question 4: What HTTP status code indicates that a resource was successfully created?
+    </div>
+    <div class="question_options">
+      <div class="question_option">
+        <input type="radio" name="q4" value="a" id="q4-a">
+        <label for="q4-a">200 OK</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q4" value="b" id="q4-b">
+        <label for="q4-b">201 Created</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q4" value="c" id="q4-c">
+        <label for="q4-c">204 No Content</label>
+      </div>
+      <div class="question_option">
+        <input type="radio" name="q4" value="d" id="q4-d">
+        <label for="q4-d">301 Moved Permanently</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-footer">
+    <button class="submit-quiz">Submit Quiz</button>
+  </div>
+
+  <script>
+    // Add some interactivity to make it feel more like a real quiz
+    document.querySelectorAll('.question_option').forEach(option => {
+      option.addEventListener('click', function() {
+        const radio = this.querySelector('input[type="radio"]');
+        radio.checked = true;
+
+        // Remove selected class from siblings
+        this.parentElement.querySelectorAll('.question_option').forEach(opt => {
+          opt.style.background = '#f8f9fa';
+          opt.style.borderColor = '#dee2e6';
+        });
+
+        // Add selected style
+        this.style.background = '#e7f3ff';
+        this.style.borderColor = '#0374B5';
+      });
+    });
+
+    document.querySelector('.submit-quiz').addEventListener('click', function() {
+      alert('This is a test page. In a real Canvas quiz, this would submit your answers.');
+    });
+  </script>
+</body>
+</html>

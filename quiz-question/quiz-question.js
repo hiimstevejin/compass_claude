@@ -1,270 +1,408 @@
-// Quiz Question JavaScript
+// Quiz Question Assistant - Injects question prompt UI into Canvas quizzes
 
-// Sample quiz data (in production, this would come from storage or API)
-const SAMPLE_QUESTIONS = [
-  {
-    id: 1,
-    text: 'What is the primary difference between let and const in JavaScript?',
-    difficulty: 'Medium'
-  },
-  {
-    id: 2,
-    text: 'Explain the concept of closure in JavaScript with an example.',
-    difficulty: 'Hard'
-  },
-  {
-    id: 3,
-    text: 'What is the purpose of the virtual DOM in React?',
-    difficulty: 'Medium'
+class QuizQuestionAssistant {
+  constructor() {
+    this.questions = new Map();
+    this.initialized = false;
   }
-];
 
-let currentQuestionIndex = 0;
-let userAnswers = [];
+  // Initialize the assistant
+  init() {
+    if (this.initialized) return;
 
-// DOM elements
-const backBtn = document.getElementById('backBtn');
-const questionNum = document.getElementById('questionNum');
-const difficultyBadge = document.getElementById('difficultyBadge');
-const questionText = document.getElementById('questionText');
-const userPrompt = document.getElementById('userPrompt');
-const promptCharCount = document.getElementById('promptCharCount');
-const sendPromptBtn = document.getElementById('sendPromptBtn');
-const clearPromptBtn = document.getElementById('clearPromptBtn');
-const aiResponse = document.getElementById('aiResponse');
-const answerText = document.getElementById('answerText');
-const answerCharCount = document.getElementById('answerCharCount');
-const submitAnswerBtn = document.getElementById('submitAnswerBtn');
-const skipBtn = document.getElementById('skipBtn');
-const feedbackSection = document.getElementById('feedbackSection');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
+    console.log('Quiz Question Assistant initialized');
+    this.initialized = true;
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  loadQuestion(currentQuestionIndex);
-  setupEventListeners();
-  loadInstructorSettings();
-});
-
-// Setup event listeners
-function setupEventListeners() {
-  // Back button
-  backBtn.addEventListener('click', () => {
-    window.location.href = '../popup.html';
-  });
-
-  // Character counters
-  userPrompt.addEventListener('input', () => {
-    promptCharCount.textContent = `${userPrompt.value.length} characters`;
-  });
-
-  answerText.addEventListener('input', () => {
-    answerCharCount.textContent = `${answerText.value.length} characters`;
-  });
-
-  // Prompt buttons
-  sendPromptBtn.addEventListener('click', sendPromptToAI);
-  clearPromptBtn.addEventListener('click', () => {
-    userPrompt.value = '';
-    promptCharCount.textContent = '0 characters';
-    aiResponse.classList.remove('active');
-  });
-
-  // Answer buttons
-  submitAnswerBtn.addEventListener('click', submitAnswer);
-  skipBtn.addEventListener('click', skipQuestion);
-
-  // Navigation
-  prevBtn.addEventListener('click', previousQuestion);
-  nextBtn.addEventListener('click', nextQuestion);
-}
-
-// Load instructor settings
-function loadInstructorSettings() {
-  chrome.storage.sync.get(['instructorSettings'], (result) => {
-    if (result.instructorSettings) {
-      console.log('Loaded instructor settings:', result.instructorSettings);
-      // Settings will be used when communicating with AI
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.detectAndInject());
+    } else {
+      this.detectAndInject();
     }
-  });
-}
 
-// Load question
-function loadQuestion(index) {
-  if (index < 0 || index >= SAMPLE_QUESTIONS.length) return;
-
-  const question = SAMPLE_QUESTIONS[index];
-  currentQuestionIndex = index;
-
-  questionNum.textContent = index + 1;
-  difficultyBadge.textContent = question.difficulty;
-  questionText.textContent = question.text;
-
-  // Clear previous answer and feedback
-  answerText.value = userAnswers[index]?.answer || '';
-  answerCharCount.textContent = `${answerText.value.length} characters`;
-  feedbackSection.classList.remove('active');
-  aiResponse.classList.remove('active');
-
-  // Update navigation buttons
-  prevBtn.disabled = index === 0;
-  nextBtn.disabled = index === SAMPLE_QUESTIONS.length - 1;
-}
-
-// Send prompt to AI
-async function sendPromptToAI() {
-  const prompt = userPrompt.value.trim();
-
-  if (!prompt) {
-    showAIResponse('Please enter a prompt first.', false);
-    return;
+    // Watch for dynamic question loading (Canvas often loads questions dynamically)
+    this.observeQuizChanges();
   }
 
-  // Show loading state
-  const btnText = sendPromptBtn.querySelector('.btn-text');
-  const btnLoader = sendPromptBtn.querySelector('.btn-loader');
-  btnText.style.display = 'none';
-  btnLoader.style.display = 'inline';
-  sendPromptBtn.disabled = true;
+  // Detect Canvas quiz questions and inject UI
+  detectAndInject() {
+    // Canvas quiz questions are typically in question containers
+    // Common selectors for Canvas quiz questions:
+    const questionSelectors = [
+      '.question',
+      '[class*="question"]',
+      '.quiz_question',
+      '[data-automation="sdk-overlay"]' // From user's example
+    ];
 
-  try {
-    // Get instructor settings
-    const settings = await getInstructorSettings();
+    // Try to find question containers
+    let questionElements = [];
 
-    // Send message to background script to handle AI interaction
-    chrome.runtime.sendMessage({
-      action: 'processQuizPrompt',
-      prompt: prompt,
-      questionId: SAMPLE_QUESTIONS[currentQuestionIndex].id,
-      questionText: SAMPLE_QUESTIONS[currentQuestionIndex].text,
-      settings: settings
-    }, (response) => {
-      if (response && response.success) {
-        showAIResponse(response.message, true);
-      } else {
-        showAIResponse('Error getting AI response. This is a demo - integrate with your AI service.', false);
+    for (const selector of questionSelectors) {
+      const elements = document.querySelectorAll(selector);
+      if (elements.length > 0) {
+        questionElements = Array.from(elements);
+        break;
+      }
+    }
+
+    // If no questions found with specific selectors, try to find by structure
+    if (questionElements.length === 0) {
+      // Look for elements with question-like structure
+      questionElements = this.findQuestionsByStructure();
+    }
+
+    console.log(`Found ${questionElements.length} quiz questions`);
+
+    // Inject UI for each question
+    questionElements.forEach((questionEl, index) => {
+      this.injectQuestionUI(questionEl, index);
+    });
+  }
+
+  // Find questions by analyzing DOM structure
+  findQuestionsByStructure() {
+    const questions = [];
+
+    // Look for common Canvas quiz patterns
+    const possibleQuestions = document.querySelectorAll('[role="presentation"]');
+
+    possibleQuestions.forEach(el => {
+      // Check if this looks like a question container
+      if (el.querySelector('.question_text') ||
+          el.querySelector('[class*="question"]') ||
+          el.textContent.length > 20) { // Has substantial text content
+        questions.push(el);
+      }
+    });
+
+    // If still no questions, try to find divs with specific classes
+    if (questions.length === 0) {
+      const divs = document.querySelectorAll('div[class*="display_question"]');
+      questions.push(...divs);
+    }
+
+    return questions;
+  }
+
+  // Inject question UI next to a question element
+  injectQuestionUI(questionEl, questionIndex) {
+    // Check if UI already injected for this question
+    if (questionEl.querySelector('.quiz-assistant-container')) {
+      return;
+    }
+
+    // Extract question text
+    const questionText = this.extractQuestionText(questionEl);
+    const questionId = this.generateQuestionId(questionEl, questionIndex);
+
+    // Store question info
+    this.questions.set(questionId, {
+      element: questionEl,
+      text: questionText,
+      index: questionIndex
+    });
+
+    // Create UI container
+    const container = document.createElement('div');
+    container.className = 'quiz-assistant-container';
+    container.setAttribute('data-question-id', questionId);
+
+    // Create UI elements
+    container.innerHTML = `
+      <div class="quiz-assistant-header">
+        <span class="quiz-assistant-icon">💡</span>
+        <span class="quiz-assistant-title">Ask a question about this problem</span>
+        <button class="quiz-assistant-toggle" title="Toggle assistant">▼</button>
+      </div>
+      <div class="quiz-assistant-content">
+        <textarea
+          class="quiz-assistant-textarea"
+          placeholder="Type your question here... (e.g., 'Can you explain what this question is asking?')"
+          rows="3"
+        ></textarea>
+        <div class="quiz-assistant-actions">
+          <button class="quiz-assistant-submit">Send Question</button>
+          <span class="quiz-assistant-status"></span>
+        </div>
+        <div class="quiz-assistant-response"></div>
+      </div>
+    `;
+
+    // Add event listeners
+    this.attachEventListeners(container, questionId);
+
+    // Try to inject next to question
+    const injected = this.injectNextToQuestion(questionEl, container);
+
+    if (!injected) {
+      console.warn('Could not inject UI next to question, considering fallback');
+    }
+  }
+
+  // Extract question text from question element
+  extractQuestionText(questionEl) {
+    // Try different selectors to find question text
+    const textSelectors = [
+      '.question_text',
+      '[class*="question_text"]',
+      '.question-text',
+      '[class*="questionText"]',
+      'p',
+      'div'
+    ];
+
+    for (const selector of textSelectors) {
+      const textEl = questionEl.querySelector(selector);
+      if (textEl && textEl.textContent.trim().length > 10) {
+        return textEl.textContent.trim();
+      }
+    }
+
+    // Fallback: get all text content
+    return questionEl.textContent.trim().substring(0, 500);
+  }
+
+  // Generate a unique ID for a question
+  generateQuestionId(questionEl, index) {
+    // Try to use Canvas's question ID if available
+    const canvasId = questionEl.getAttribute('id') ||
+                     questionEl.getAttribute('data-question-id') ||
+                     questionEl.getAttribute('data-id');
+
+    if (canvasId) {
+      return canvasId;
+    }
+
+    // Otherwise generate from index and text
+    return `question-${index}`;
+  }
+
+  // Inject container next to question element
+  injectNextToQuestion(questionEl, container) {
+    try {
+      // Try to find a good spot to inject
+      // Option 1: After question text
+      const questionText = questionEl.querySelector('.question_text, [class*="question_text"]');
+      if (questionText) {
+        questionText.parentNode.insertBefore(container, questionText.nextSibling);
+        return true;
       }
 
-      // Reset button state
-      btnText.style.display = 'inline';
-      btnLoader.style.display = 'none';
-      sendPromptBtn.disabled = false;
-    });
+      // Option 2: At the end of question container
+      if (questionEl.classList.contains('question') || questionEl.querySelector('.question')) {
+        questionEl.appendChild(container);
+        return true;
+      }
 
-  } catch (error) {
-    console.error('Error sending prompt:', error);
-    showAIResponse('Error communicating with AI service.', false);
+      // Option 3: After the question element
+      if (questionEl.parentNode) {
+        questionEl.parentNode.insertBefore(container, questionEl.nextSibling);
+        return true;
+      }
 
-    // Reset button state
-    btnText.style.display = 'inline';
-    btnLoader.style.display = 'none';
-    sendPromptBtn.disabled = false;
-  }
-}
-
-// Show AI response
-function showAIResponse(message, isSuccess) {
-  aiResponse.innerHTML = `
-    <h3>${isSuccess ? 'AI Response' : 'Note'}</h3>
-    <p>${message}</p>
-  `;
-  aiResponse.classList.add('active');
-}
-
-// Get instructor settings
-function getInstructorSettings() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(['instructorSettings'], (result) => {
-      resolve(result.instructorSettings || {});
-    });
-  });
-}
-
-// Submit answer
-async function submitAnswer() {
-  const answer = answerText.value.trim();
-
-  if (!answer) {
-    showFeedback('Please provide an answer before submitting.', false);
-    return;
-  }
-
-  // Save answer
-  userAnswers[currentQuestionIndex] = {
-    questionId: SAMPLE_QUESTIONS[currentQuestionIndex].id,
-    answer: answer,
-    timestamp: new Date().toISOString()
-  };
-
-  // Get instructor settings for evaluation
-  const settings = await getInstructorSettings();
-
-  // Send to background for evaluation
-  chrome.runtime.sendMessage({
-    action: 'evaluateAnswer',
-    questionText: SAMPLE_QUESTIONS[currentQuestionIndex].text,
-    answer: answer,
-    settings: settings
-  }, (response) => {
-    if (response && response.success) {
-      showFeedback(response.feedback, true);
-    } else {
-      showFeedback('Answer submitted! (Integrate with AI for automatic evaluation)', true);
+      return false;
+    } catch (error) {
+      console.error('Error injecting UI:', error);
+      return false;
     }
-  });
+  }
 
-  console.log('Answer submitted:', userAnswers[currentQuestionIndex]);
-}
+  // Attach event listeners to UI elements
+  attachEventListeners(container, questionId) {
+    const textarea = container.querySelector('.quiz-assistant-textarea');
+    const submitBtn = container.querySelector('.quiz-assistant-submit');
+    const toggleBtn = container.querySelector('.quiz-assistant-toggle');
+    const content = container.querySelector('.quiz-assistant-content');
+    const statusEl = container.querySelector('.quiz-assistant-status');
+    const responseEl = container.querySelector('.quiz-assistant-response');
 
-// Show feedback
-function showFeedback(message, isSuccess) {
-  feedbackSection.innerHTML = `
-    <h3>${isSuccess ? 'Feedback' : 'Error'}</h3>
-    <p>${message}</p>
-  `;
-  feedbackSection.className = `feedback-section ${isSuccess ? '' : 'error'} active`;
-}
+    // Toggle button
+    toggleBtn.addEventListener('click', () => {
+      const isExpanded = content.style.display !== 'none';
+      content.style.display = isExpanded ? 'none' : 'block';
+      toggleBtn.textContent = isExpanded ? '▶' : '▼';
+    });
 
-// Skip question
-function skipQuestion() {
-  if (confirm('Are you sure you want to skip this question?')) {
-    userAnswers[currentQuestionIndex] = {
-      questionId: SAMPLE_QUESTIONS[currentQuestionIndex].id,
-      answer: '',
-      skipped: true,
-      timestamp: new Date().toISOString()
+    // Submit button
+    submitBtn.addEventListener('click', async () => {
+      const prompt = textarea.value.trim();
+
+      if (!prompt) {
+        this.showStatus(statusEl, 'Please enter a question', 'error');
+        return;
+      }
+
+      // Get question info
+      const questionInfo = this.questions.get(questionId);
+      if (!questionInfo) {
+        this.showStatus(statusEl, 'Question not found', 'error');
+        return;
+      }
+
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+      this.showStatus(statusEl, 'Processing...', 'loading');
+      responseEl.textContent = '';
+
+      // Send to background script
+      try {
+        const response = await this.sendQuestionToBackend(questionId, questionInfo.text, prompt);
+
+        if (response.success) {
+          this.showStatus(statusEl, 'Response received!', 'success');
+          this.showResponse(responseEl, response.message);
+          textarea.value = ''; // Clear textarea
+        } else {
+          this.showStatus(statusEl, response.message || 'Error occurred', 'error');
+        }
+      } catch (error) {
+        console.error('Error sending question:', error);
+        this.showStatus(statusEl, 'Failed to send question', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Question';
+      }
+    });
+
+    // Allow Enter key to submit (with Shift+Enter for newlines)
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitBtn.click();
+      }
+    });
+  }
+
+  // Send question to backend via background script
+  async sendQuestionToBackend(questionId, questionText, prompt) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({
+        action: 'processQuizPrompt',
+        questionId: questionId,
+        questionText: questionText,
+        prompt: prompt,
+        settings: {} // Can add settings later if needed
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          // Check if backend failed - if so, use demo mode
+          if (!response.success && response.message &&
+              response.message.includes('Failed to connect to backend')) {
+            console.log('Backend unavailable, using DEMO MODE');
+            resolve(this.getDemoResponse(questionText, prompt));
+          } else {
+            resolve(response);
+          }
+        }
+      });
+    });
+  }
+
+  // Demo mode response when backend is unavailable
+  getDemoResponse(questionText, prompt) {
+    // Simulate a helpful AI response
+    const responses = [
+      `Great question! Let me help you understand this better.\n\nFor the question: "${questionText.substring(0, 100)}..."\n\nYour question was: "${prompt}"\n\n✨ DEMO MODE: This is a simulated response. When your backend server is running, you'll receive real AI-powered answers here!\n\nTo activate the real backend:\n1. Start your backend server on http://localhost:3000\n2. Make sure the /api/quiz/process-prompt endpoint is available\n3. Try asking your question again!`,
+
+      `📚 I understand you're asking: "${prompt}"\n\n✨ DEMO MODE ACTIVE\n\nThis question asks about: "${questionText.substring(0, 80)}..."\n\nIn production mode with the backend running, I would:\n• Analyze the question context\n• Provide detailed explanations\n• Offer hints without giving away the answer\n• Help you understand the underlying concepts\n\nConnect your backend server to get real AI assistance!`,
+
+      `🎯 Question received!\n\nYou asked: "${prompt}"\n\n✨ Currently running in DEMO MODE\n\nWhen connected to your backend, this assistant will:\n✓ Understand your specific question\n✓ Provide contextual help\n✓ Explain concepts without giving direct answers\n✓ Support your learning process\n\nStart your backend server at http://localhost:3000 to enable full functionality!`
+    ];
+
+    // Return a random demo response
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+    return {
+      success: true,
+      message: randomResponse
     };
-
-    if (currentQuestionIndex < SAMPLE_QUESTIONS.length - 1) {
-      nextQuestion();
-    } else {
-      showFeedback('Question skipped. This is the last question.', true);
-    }
   }
-}
 
-// Navigation
-function previousQuestion() {
-  if (currentQuestionIndex > 0) {
-    loadQuestion(currentQuestionIndex - 1);
+  // Show status message
+  showStatus(statusEl, message, type) {
+    statusEl.textContent = message;
+    statusEl.className = `quiz-assistant-status ${type}`;
+
+    // Auto-clear after 5 seconds
+    setTimeout(() => {
+      statusEl.textContent = '';
+      statusEl.className = 'quiz-assistant-status';
+    }, 5000);
   }
-}
 
-function nextQuestion() {
-  if (currentQuestionIndex < SAMPLE_QUESTIONS.length - 1) {
-    loadQuestion(currentQuestionIndex + 1);
+  // Show response from backend
+  showResponse(responseEl, message) {
+    responseEl.innerHTML = `
+      <div class="quiz-assistant-response-content">
+        <strong>Response:</strong>
+        <p>${this.escapeHtml(message)}</p>
+      </div>
+    `;
+    responseEl.style.display = 'block';
   }
-}
 
-// Save progress periodically
-setInterval(() => {
-  if (userAnswers.length > 0) {
-    chrome.storage.local.set({
-      quizProgress: userAnswers,
-      lastUpdated: new Date().toISOString()
-    }, () => {
-      console.log('Progress saved');
+  // Escape HTML to prevent XSS
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Observe DOM changes for dynamically loaded questions
+  observeQuizChanges() {
+    const observer = new MutationObserver((mutations) => {
+      let shouldRecheck = false;
+
+      mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length > 0) {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === 1) { // Element node
+              // Check if new question was added
+              if (node.classList && (
+                  node.classList.contains('question') ||
+                  node.querySelector('.question') ||
+                  node.getAttribute('role') === 'presentation'
+              )) {
+                shouldRecheck = true;
+              }
+            }
+          });
+        }
+      });
+
+      if (shouldRecheck) {
+        // Debounce the detection
+        clearTimeout(this.recheckTimeout);
+        this.recheckTimeout = setTimeout(() => {
+          this.detectAndInject();
+        }, 500);
+      }
+    });
+
+    // Start observing
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
     });
   }
-}, 30000); // Save every 30 seconds
+}
+
+// Initialize when script loads
+const quizAssistant = new QuizQuestionAssistant();
+
+// Check if we're on a Canvas page (or any page with quizzes)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    quizAssistant.init();
+  });
+} else {
+  quizAssistant.init();
+}
+
+// Export for use in other scripts
+if (typeof window !== 'undefined') {
+  window.QuizQuestionAssistant = quizAssistant;
+}
