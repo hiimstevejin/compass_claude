@@ -121,14 +121,12 @@ function shouldInitialize() {
     if (result.instructorModeEnabled !== false) {
       // Default to enabled if not set
 
-      // For Canvas pages, always initialize
+      // ONLY initialize on Canvas quiz/assignment creation/edit pages
       if (typeof InstructorPromptBox !== 'undefined' && InstructorPromptBox.isCanvasQuizPage()) {
         console.log('Canvas quiz page detected, initializing prompt box');
         initializeInstructorPromptBox();
-      } else {
-        // For non-Canvas pages, only initialize if enabled
-        initializeInstructorPromptBox();
       }
+      // Do NOT initialize on other pages
     }
   });
 }

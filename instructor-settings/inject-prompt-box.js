@@ -12,22 +12,40 @@ class InstructorPromptBox {
     };
   }
 
-  // Detect if we're on a Canvas quiz build page
+  // Detect if we're on a Canvas quiz/assignment CREATION page (not preview or question editing)
   static isCanvasQuizPage() {
     const url = window.location.href;
     const hostname = window.location.hostname;
 
-    // Check if it's an Instructure Canvas domain and quiz-related URL
-    const isCanvas = hostname.includes('instructure.com') ||
-                     hostname.includes('canvas') ||
-                     document.querySelector('[data-testid*="quiz"]') !== null ||
-                     document.querySelector('.quiz-header') !== null;
+    // Check if it's an Instructure Canvas domain
+    const isCanvas = hostname.includes('instructure.com') || hostname.includes('canvas');
 
-    const isQuizPage = url.includes('/quizzes/') ||
-                       url.includes('/quiz') ||
-                       url.includes('/assignments/') && url.includes('/edit');
+    if (!isCanvas) {
+      return false;
+    }
 
-    return isCanvas && (isQuizPage || url.includes('/edit') || url.includes('/new'));
+    // ONLY show on quiz/assignment creation pages, NOT on:
+    // - Preview pages (/quizzes/{id}/take, /quizzes/{id}/preview)
+    // - Question editing pages (/quizzes/{id}/questions)
+    // - Statistics or other sub-pages
+
+    // Exclude preview, take, questions, statistics, and history pages
+    if (url.includes('/take') ||
+        url.includes('/preview') ||
+        url.includes('/questions') ||
+        url.includes('/statistics') ||
+        url.includes('/history') ||
+        url.includes('/moderate')) {
+      return false;
+    }
+
+    // Only include new quiz/assignment creation or main edit pages
+    // Match /quizzes/123/edit (with optional query params or hash, but not /edit/something)
+    const isQuizEdit = url.match(/\/quizzes\/\d+\/edit(\?|#|\/?\s*$)/);
+    const isAssignmentEdit = url.match(/\/assignments\/\d+\/edit(\?|#|\/?\s*$)/);
+    const isNew = url.includes('/quizzes/new') || url.includes('/assignments/new');
+
+    return isNew || isQuizEdit || isAssignmentEdit;
   }
 
   // Create the HTML structure for the prompt box
