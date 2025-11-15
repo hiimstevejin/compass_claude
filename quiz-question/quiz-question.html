@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Question</title>
+  <link rel="stylesheet" href="quiz-question.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <button id="backBtn" class="back-btn">← Back</button>
+      <h1>Quiz Question</h1>
+    </div>
+
+    <div class="content">
+      <!-- Question Display -->
+      <div class="question-section">
+        <div class="question-header">
+          <span class="question-number">Question <span id="questionNum">1</span></span>
+          <span class="difficulty-badge" id="difficultyBadge">Medium</span>
+        </div>
+        <div class="question-text" id="questionText">
+          What is the primary difference between let and const in JavaScript?
+        </div>
+      </div>
+
+      <!-- AI Prompt Section -->
+      <div class="prompt-section">
+        <h2>AI Assistance</h2>
+        <p class="description">Use the text area below to ask questions or request hints from the AI.</p>
+
+        <div class="form-group">
+          <label for="userPrompt">Your Prompt</label>
+          <textarea
+            id="userPrompt"
+            class="prompt-textarea"
+            placeholder="Ask for clarification, hints, or help with this question..."
+            rows="4"
+          ></textarea>
+          <span class="char-count" id="promptCharCount">0 characters</span>
+        </div>
+
+        <div class="button-row">
+          <button id="sendPromptBtn" class="btn btn-primary">
+            <span class="btn-text">Send Prompt</span>
+            <span class="btn-loader" style="display: none;">⏳</span>
+          </button>
+          <button id="clearPromptBtn" class="btn btn-secondary">Clear</button>
+        </div>
+
+        <!-- AI Response -->
+        <div id="aiResponse" class="ai-response"></div>
+      </div>
+
+      <!-- Answer Section -->
+      <div class="answer-section">
+        <h2>Your Answer</h2>
+        <div class="form-group">
+          <textarea
+            id="answerText"
+            class="answer-textarea"
+            placeholder="Type your answer here..."
+            rows="6"
+          ></textarea>
+          <span class="char-count" id="answerCharCount">0 characters</span>
+        </div>
+
+        <div class="button-group">
+          <button id="submitAnswerBtn" class="btn btn-primary btn-large">Submit Answer</button>
+          <button id="skipBtn" class="btn btn-secondary">Skip Question</button>
+        </div>
+      </div>
+
+      <!-- Feedback Section -->
+      <div id="feedbackSection" class="feedback-section"></div>
+
+      <!-- Navigation -->
+      <div class="navigation">
+        <button id="prevBtn" class="nav-btn" disabled>← Previous</button>
+        <button id="nextBtn" class="nav-btn">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="quiz-question.js"></script>
+</body>
+</html>

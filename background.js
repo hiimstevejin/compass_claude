@@ -24,6 +24,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: true, message: result });
   }
 
+  if (request.action === 'instructorSettingsUpdated') {
+    // Handle instructor settings update
+    console.log('Instructor settings updated:', request.settings);
+    sendResponse({ success: true });
+  }
+
+  if (request.action === 'processQuizPrompt') {
+    // Handle quiz prompt - integrate with AI service here
+    console.log('Processing quiz prompt:', request);
+
+    // Placeholder response - integrate with your AI service
+    const demoResponse = `Based on your question about "${request.questionText.substring(0, 50)}...", here's a hint: Consider the key concepts and how they relate to each other.`;
+
+    sendResponse({
+      success: true,
+      message: demoResponse
+    });
+  }
+
+  if (request.action === 'evaluateAnswer') {
+    // Handle answer evaluation - integrate with AI service here
+    console.log('Evaluating answer:', request);
+
+    // Placeholder response - integrate with your AI service
+    const demoFeedback = 'Good effort! Your answer demonstrates understanding of the core concepts. Consider providing more specific examples to strengthen your response.';
+
+    sendResponse({
+      success: true,
+      feedback: demoFeedback
+    });
+  }
+
   // Return true to indicate async response
   return true;
 });

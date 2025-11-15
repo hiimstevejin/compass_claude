@@ -1,43 +1,27 @@
 // Get DOM elements
-const actionBtn = document.getElementById('actionBtn');
-const settingsBtn = document.getElementById('settingsBtn');
+const instructorBtn = document.getElementById('instructorBtn');
+const quizBtn = document.getElementById('quizBtn');
 const output = document.getElementById('output');
 
-// Action button click handler
-actionBtn.addEventListener('click', async () => {
-  output.classList.add('active');
-  output.textContent = 'Button clicked! Sending message to background...';
-
-  // Send message to background script
-  chrome.runtime.sendMessage({ action: 'performAction' }, (response) => {
-    if (response && response.success) {
-      output.textContent = response.message;
-    }
-  });
-
-  // Get active tab info
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  console.log('Current tab:', tab);
+// Instructor Settings button handler
+instructorBtn.addEventListener('click', () => {
+  console.log('Opening Instructor Settings...');
+  window.location.href = 'instructor-settings/instructor-settings.html';
 });
 
-// Settings button click handler
-settingsBtn.addEventListener('click', () => {
-  output.classList.add('active');
-  output.textContent = 'Settings clicked!';
-
-  // Example: Store data in chrome.storage
-  chrome.storage.sync.set({
-    settingsOpened: true,
-    timestamp: new Date().toISOString()
-  }, () => {
-    console.log('Settings data saved');
-  });
+// Quiz Question button handler
+quizBtn.addEventListener('click', () => {
+  console.log('Opening Quiz Questions...');
+  window.location.href = 'quiz-question/quiz-question.html';
 });
 
-// Load saved data on popup open
-chrome.storage.sync.get(['settingsOpened', 'timestamp'], (result) => {
-  if (result.settingsOpened) {
-    console.log('Settings were last opened at:', result.timestamp);
+// Load extension info on popup open
+chrome.storage.sync.get(['instructorSettings', 'quizProgress'], (result) => {
+  if (result.instructorSettings) {
+    console.log('Instructor settings loaded:', result.instructorSettings);
+  }
+  if (result.quizProgress) {
+    console.log('Quiz progress loaded:', result.quizProgress);
   }
 });
 

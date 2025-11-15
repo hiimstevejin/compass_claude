@@ -8,12 +8,29 @@
 </head>
 <body>
   <div class="container">
-    <h1>Chrome Extension</h1>
-    <p>Welcome to your Chrome extension!</p>
+    <h1>Quiz Assistant</h1>
+    <p>AI-powered quiz management and assistance</p>
 
-    <div class="button-group">
-      <button id="actionBtn" class="btn">Click Me</button>
-      <button id="settingsBtn" class="btn btn-secondary">Settings</button>
+    <div class="features-section">
+      <h2>Features</h2>
+
+      <div class="feature-card">
+        <div class="feature-icon">👨‍🏫</div>
+        <div class="feature-content">
+          <h3>Instructor Settings</h3>
+          <p>Configure AI system prompts for quiz generation and evaluation</p>
+          <button id="instructorBtn" class="btn btn-primary">Open Settings</button>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <div class="feature-content">
+          <h3>Quiz Questions</h3>
+          <p>Take quizzes with AI assistance and get instant feedback</p>
+          <button id="quizBtn" class="btn btn-primary">Start Quiz</button>
+        </div>
+      </div>
     </div>
 
     <div id="output" class="output"></div>
