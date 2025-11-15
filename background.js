@@ -173,6 +173,74 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keep message channel open for async response
   }
 
+  if (request.action === 'generateReport') {
+    // Handle report generation - send to backend server
+    console.log('Generating report:', request);
+
+    const payload = {
+      assignment_id: request.assignment_id
+    };
+
+    makeBackendRequest(CONFIG.ENDPOINTS.GENERATE_REPORT, payload)
+      .then(result => {
+        if (result.success) {
+          sendResponse({
+            success: true,
+            data: result.data
+          });
+        } else {
+          sendResponse({
+            success: false,
+            message: result.message
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error generating report:', error);
+        sendResponse({
+          success: false,
+          message: 'An error occurred while generating the report.'
+        });
+      });
+
+    return true; // Keep message channel open for async response
+  }
+
+  if (request.action === 'chatReport') {
+    // Handle report chat - send to backend server
+    console.log('Chat with report:', request);
+
+    const payload = {
+      assignment_id: request.assignment_id,
+      message: request.message,
+      chat_history: request.chat_history || []
+    };
+
+    makeBackendRequest(CONFIG.ENDPOINTS.CHAT_REPORT, payload)
+      .then(result => {
+        if (result.success) {
+          sendResponse({
+            success: true,
+            data: result.data
+          });
+        } else {
+          sendResponse({
+            success: false,
+            message: result.message
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error chatting with report:', error);
+        sendResponse({
+          success: false,
+          message: 'An error occurred while processing your message.'
+        });
+      });
+
+    return true; // Keep message channel open for async response
+  }
+
   // Return true to indicate async response
   return true;
 });
