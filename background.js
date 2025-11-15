@@ -10,7 +10,7 @@ const CONFIG = {
     SUBMIT_ANSWER: "/api/quiz/submit-answer",
     CREATE_PROMPT: "/api/prompts",
     GENERATE_REPORT: "/api/reports/generate",
-    CHAT_REPORT: "/api/reports/chat",
+    CHAT_REPORT: "/api/diagnostics/query",
     ANALYZE_ASSIGNMENT: "/api/diagnostics/analyze",
   },
   REQUEST_TIMEOUT: 30000,
@@ -246,7 +246,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     const payload = {
       assignment_id: request.assignment_id,
-      message: request.message,
+      question: request.message,
       chat_history: request.chat_history || [],
     };
 

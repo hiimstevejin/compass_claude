@@ -391,7 +391,7 @@ class QuizReportGenerator {
         }
 
         if (response && response.success) {
-          const aiMessage = response.data.response || response.data.message || 'No response';
+          const aiMessage = response.data.answer || 'No response';
           this.addChatMessage('ai', aiMessage);
 
           // Update chat history
