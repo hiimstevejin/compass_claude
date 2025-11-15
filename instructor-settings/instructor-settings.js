@@ -6,7 +6,8 @@ const DEFAULT_SETTINGS = {
   evaluationPrompt: 'Evaluate student answers fairly and provide constructive feedback. Consider partial credit for answers that demonstrate understanding even if not perfectly worded.',
   difficultyLevel: 'medium',
   enableHints: false,
-  enableFeedback: true
+  enableFeedback: true,
+  enableInstructorMode: true
 };
 
 // DOM elements
@@ -21,6 +22,11 @@ const resetBtn = document.getElementById('resetBtn');
 const statusMessage = document.getElementById('statusMessage');
 const genCharCount = document.getElementById('genCharCount');
 const evalCharCount = document.getElementById('evalCharCount');
+const customPrompt = document.getElementById('customPrompt');
+const customCharCount = document.getElementById('customCharCount');
+const sendPromptBtn = document.getElementById('sendPromptBtn');
+const llmResponse = document.getElementById('llmResponse');
+const enableInstructorMode = document.getElementById('enableInstructorMode');
 
 // Load saved settings on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -44,11 +50,18 @@ function setupEventListeners() {
     evalCharCount.textContent = `${evaluationPrompt.value.length} characters`;
   });
 
+  customPrompt.addEventListener('input', () => {
+    customCharCount.textContent = `${customPrompt.value.length} characters`;
+  });
+
   // Save button
   saveBtn.addEventListener('click', saveSettings);
 
   // Reset button
   resetBtn.addEventListener('click', resetToDefault);
+
+  // Send prompt button
+  sendPromptBtn.addEventListener('click', sendPromptToBackend);
 }
 
 // Load settings from storage
@@ -61,12 +74,20 @@ function loadSettings() {
     difficultyLevel.value = settings.difficultyLevel;
     enableHints.checked = settings.enableHints;
     enableFeedback.checked = settings.enableFeedback;
+    enableInstructorMode.checked = settings.enableInstructorMode !== false;
 
     // Update character counts
     genCharCount.textContent = `${quizGenerationPrompt.value.length} characters`;
     evalCharCount.textContent = `${evaluationPrompt.value.length} characters`;
 
     console.log('Settings loaded:', settings);
+  });
+
+  // Also load the global instructor mode setting
+  chrome.storage.sync.get(['instructorModeEnabled'], (result) => {
+    if (result.instructorModeEnabled !== undefined) {
+      enableInstructorMode.checked = result.instructorModeEnabled;
+    }
   });
 }
 
@@ -78,6 +99,7 @@ function saveSettings() {
     difficultyLevel: difficultyLevel.value,
     enableHints: enableHints.checked,
     enableFeedback: enableFeedback.checked,
+    enableInstructorMode: enableInstructorMode.checked,
     lastUpdated: new Date().toISOString()
   };
 
@@ -88,14 +110,18 @@ function saveSettings() {
   }
 
   // Save to Chrome storage
-  chrome.storage.sync.set({ instructorSettings: settings }, () => {
+  chrome.storage.sync.set({
+    instructorSettings: settings,
+    instructorModeEnabled: enableInstructorMode.checked
+  }, () => {
     console.log('Settings saved:', settings);
     showStatus('Settings saved successfully!', 'success');
 
-    // Notify background script
+    // Notify background script to update all tabs
     chrome.runtime.sendMessage({
       action: 'instructorSettingsUpdated',
-      settings: settings
+      settings: settings,
+      instructorModeEnabled: enableInstructorMode.checked
     });
   });
 }
@@ -108,6 +134,7 @@ function resetToDefault() {
     difficultyLevel.value = DEFAULT_SETTINGS.difficultyLevel;
     enableHints.checked = DEFAULT_SETTINGS.enableHints;
     enableFeedback.checked = DEFAULT_SETTINGS.enableFeedback;
+    enableInstructorMode.checked = DEFAULT_SETTINGS.enableInstructorMode;
 
     // Update character counts
     genCharCount.textContent = `${quizGenerationPrompt.value.length} characters`;
@@ -125,6 +152,62 @@ function showStatus(message, type) {
   setTimeout(() => {
     statusMessage.className = 'status-message';
   }, 3000);
+}
+
+// Send prompt to backend LLM
+async function sendPromptToBackend() {
+  const prompt = customPrompt.value.trim();
+
+  if (!prompt) {
+    showLLMResponse('Please enter a prompt to send.', 'error');
+    return;
+  }
+
+  // Show loading state
+  showLLMResponse('Sending prompt to backend LLM...', 'loading');
+  sendPromptBtn.disabled = true;
+  sendPromptBtn.textContent = 'Sending...';
+
+  try {
+    // Load config from the parent directory
+    const BACKEND_URL = 'http://localhost:3000';
+    const ENDPOINT = '/api/quiz/process-prompt';
+
+    const response = await fetch(`${BACKEND_URL}${ENDPOINT}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Display the response
+    const responseText = data.response || JSON.stringify(data, null, 2);
+    showLLMResponse(`Backend Response:\n\n${responseText}`, 'success');
+
+    console.log('Backend response:', data);
+  } catch (error) {
+    console.error('Error sending prompt to backend:', error);
+    showLLMResponse(`Error: ${error.message}\n\nMake sure the backend server is running at http://localhost:3000`, 'error');
+  } finally {
+    sendPromptBtn.disabled = false;
+    sendPromptBtn.textContent = 'Send to Backend LLM';
+  }
+}
+
+// Show LLM response
+function showLLMResponse(message, type) {
+  llmResponse.textContent = message;
+  llmResponse.className = `llm-response ${type}`;
 }
 
 // Listen for messages from background
