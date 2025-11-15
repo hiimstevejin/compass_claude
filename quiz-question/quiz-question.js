@@ -4,6 +4,36 @@ class QuizQuestionAssistant {
   constructor() {
     this.questions = new Map();
     this.initialized = false;
+    this.assignmentId = this.extractAssignmentId();
+  }
+
+  // Extract assignment/quiz ID from the page
+  extractAssignmentId() {
+    // Try to get from URL first (Canvas format: /courses/xxx/quizzes/123)
+    const urlMatch = window.location.pathname.match(/\/quizzes\/(\d+)/);
+    if (urlMatch) {
+      return `quiz_${urlMatch[1]}`;
+    }
+
+    // Try to get from URL (alternative format: /assignments/456)
+    const assignmentMatch = window.location.pathname.match(/\/assignments\/(\d+)/);
+    if (assignmentMatch) {
+      return `assignment_${assignmentMatch[1]}`;
+    }
+
+    // Try to find from page data attributes
+    const quizContainer = document.querySelector('[data-quiz-id]');
+    if (quizContainer) {
+      return `quiz_${quizContainer.getAttribute('data-quiz-id')}`;
+    }
+
+    // Fallback: generate from URL path
+    const pathParts = window.location.pathname.split('/').filter(p => p);
+    if (pathParts.length > 0) {
+      return pathParts[pathParts.length - 1] || 'unknown_quiz';
+    }
+
+    return 'unknown_quiz';
   }
 
   // Initialize the assistant
@@ -113,7 +143,7 @@ class QuizQuestionAssistant {
       <div class="quiz-assistant-header">
         <span class="quiz-assistant-icon">💡</span>
         <span class="quiz-assistant-title">Ask a question about this problem</span>
-        <button class="quiz-assistant-toggle" title="Toggle assistant">▼</button>
+        <button type="button" class="quiz-assistant-toggle" title="Toggle assistant">▼</button>
       </div>
       <div class="quiz-assistant-content">
         <textarea
@@ -122,7 +152,7 @@ class QuizQuestionAssistant {
           rows="3"
         ></textarea>
         <div class="quiz-assistant-actions">
-          <button class="quiz-assistant-submit">Send Question</button>
+          <button type="button" class="quiz-assistant-submit">Send Question</button>
           <span class="quiz-assistant-status"></span>
         </div>
         <div class="quiz-assistant-response"></div>
@@ -218,14 +248,19 @@ class QuizQuestionAssistant {
     const responseEl = container.querySelector('.quiz-assistant-response');
 
     // Toggle button
-    toggleBtn.addEventListener('click', () => {
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const isExpanded = content.style.display !== 'none';
       content.style.display = isExpanded ? 'none' : 'block';
       toggleBtn.textContent = isExpanded ? '▶' : '▼';
     });
 
     // Submit button
-    submitBtn.addEventListener('click', async () => {
+    submitBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
       const prompt = textarea.value.trim();
 
       if (!prompt) {
@@ -248,7 +283,12 @@ class QuizQuestionAssistant {
 
       // Send to background script
       try {
-        const response = await this.sendQuestionToBackend(questionId, questionInfo.text, prompt);
+        const response = await this.sendQuestionToBackend(
+          questionId,
+          questionInfo.text,
+          prompt,
+          this.assignmentId
+        );
 
         if (response.success) {
           this.showStatus(statusEl, 'Response received!', 'success');
@@ -270,19 +310,31 @@ class QuizQuestionAssistant {
     textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
+        e.stopPropagation();
         submitBtn.click();
       }
     });
   }
 
   // Send question to backend via background script
-  async sendQuestionToBackend(questionId, questionText, prompt) {
+  async sendQuestionToBackend(questionId, questionText, prompt, assignmentId) {
+    // Log the data being sent
+    console.log('📤 QUIZ ASSISTANT - Sending to background script:', {
+      action: 'processQuizPrompt',
+      questionId: questionId,
+      questionText: questionText,
+      prompt: prompt,
+      assignmentId: assignmentId,
+      settings: {}
+    });
+
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({
         action: 'processQuizPrompt',
         questionId: questionId,
         questionText: questionText,
         prompt: prompt,
+        assignmentId: assignmentId,
         settings: {} // Can add settings later if needed
       }, (response) => {
         if (chrome.runtime.lastError) {

@@ -75,8 +75,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       prompt: request.prompt,
       questionId: request.questionId,
       questionText: request.questionText,
+      assignmentId: request.assignmentId,
       settings: request.settings
     };
+
+    // Log the exact request being sent to backend
+    console.log('📤 BACKEND REQUEST PAYLOAD:', JSON.stringify(payload, null, 2));
+    console.log('📤 REQUEST URL:', `${CONFIG.BACKEND_URL}${CONFIG.ENDPOINTS.PROCESS_PROMPT}`);
 
     makeBackendRequest(CONFIG.ENDPOINTS.PROCESS_PROMPT, payload)
       .then(result => {
