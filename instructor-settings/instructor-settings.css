@@ -227,3 +227,63 @@ label {
 .content::-webkit-scrollbar-thumb:hover {
   background: #5568d3;
 }
+
+/* LLM Response Section */
+.llm-response {
+  margin-top: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  display: none;
+}
+
+.llm-response.visible {
+  display: block;
+}
+
+.llm-response.loading {
+  display: block;
+  text-align: center;
+  color: #667eea;
+  font-style: italic;
+}
+
+.llm-response.error {
+  display: block;
+  background: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.llm-response.success {
+  display: block;
+  background: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.llm-response::-webkit-scrollbar {
+  width: 6px;
+}
+
+.llm-response::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.llm-response::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
+}
+
+#sendPromptBtn {
+  width: 100%;
+  margin-bottom: 10px;
+}

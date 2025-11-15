@@ -24,11 +24,30 @@
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "css": ["content.css"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "instructor-settings/inject-prompt-box.js",
+        "instructor-settings/instructor-content.js"
+      ],
+      "css": ["instructor-settings/inject-prompt-box.css"]
     }
   ],
   "permissions": [
     "storage",
     "activeTab"
   ],
-  "host_permissions": []
+  "host_permissions": [
+    "http://localhost:3000/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "instructor-settings/inject-prompt-box.css",
+        "instructor-settings/inject-prompt-box.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
