@@ -1,7 +1,19 @@
 // Background service worker for Chrome Extension
 
-// Import configuration
-importScripts('config.js');
+// Configuration (inlined to avoid importScripts issues)
+const CONFIG = {
+  BACKEND_URL: 'http://localhost:3000',
+  ENDPOINTS: {
+    PROCESS_PROMPT: '/api/quiz/process-prompt',
+    EVALUATE_ANSWER: '/api/quiz/evaluate-answer',
+    GET_QUESTIONS: '/api/quiz/questions',
+    SUBMIT_ANSWER: '/api/quiz/submit-answer'
+  },
+  REQUEST_TIMEOUT: 30000,
+  DEFAULT_HEADERS: {
+    'Content-Type': 'application/json'
+  }
+};
 
 // Helper function to make API requests to backend
 async function makeBackendRequest(endpoint, data, method = 'POST') {
@@ -88,7 +100,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (result.success) {
           sendResponse({
             success: true,
-            message: result.data.message || result.data.response
+            data: result.data  // Pass the full response object from backend
           });
         } else {
           sendResponse({

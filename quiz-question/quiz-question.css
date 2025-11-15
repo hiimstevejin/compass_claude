@@ -145,35 +145,86 @@
 
 /* Response */
 .quiz-assistant-response {
-  margin-top: 15px;
+  margin-bottom: 15px;
   padding: 0;
   display: none;
 }
 
 .quiz-assistant-response-content {
-  background: white;
-  border-left: 4px solid #28a745;
-  padding: 15px;
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-left: 4px solid #0284c7;
   border-radius: 6px;
+  overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.quiz-assistant-response-content strong {
-  color: #28a745;
-  display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.quiz-assistant-response-header {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.quiz-assistant-response-content p {
-  margin: 0;
-  color: #2d3748;
+.quiz-assistant-response-header strong {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.quiz-assistant-response-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.quiz-assistant-response-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.quiz-assistant-response-text {
+  padding: 15px;
+  color: #1e293b;
   line-height: 1.6;
   font-size: 14px;
   white-space: pre-wrap;
   word-wrap: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling for response */
+.quiz-assistant-response-text::-webkit-scrollbar {
+  width: 8px;
+}
+
+.quiz-assistant-response-text::-webkit-scrollbar-track {
+  background: #e0f2fe;
+  border-radius: 4px;
+}
+
+.quiz-assistant-response-text::-webkit-scrollbar-thumb {
+  background: #0ea5e9;
+  border-radius: 4px;
+}
+
+.quiz-assistant-response-text::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
 }
 
 /* Responsive adjustments */

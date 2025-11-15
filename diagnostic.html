@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extension Diagnostic Test</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #00ff00;
+    }
+    .test {
+      margin: 10px 0;
+      padding: 10px;
+      background: #2d2d2d;
+      border-left: 3px solid #666;
+    }
+    .test.pass {
+      border-left-color: #00ff00;
+    }
+    .test.fail {
+      border-left-color: #ff0000;
+      color: #ff6b6b;
+    }
+    button {
+      background: #0374B5;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px 0;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #results {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Quiz Assistant Extension Diagnostic</h1>
+
+  <button onclick="runTests()">Run Diagnostic Tests</button>
+
+  <div id="results"></div>
+
+  <script>
+    function log(message, type = 'info') {
+      const results = document.getElementById('results');
+      const div = document.createElement('div');
+      div.className = 'test ' + type;
+      div.textContent = message;
+      results.appendChild(div);
+    }
+
+    function runTests() {
+      document.getElementById('results').innerHTML = '';
+      log('Starting diagnostic tests...', 'info');
+
+      // Test 1: Check if extension context exists
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        log('✅ TEST 1: Chrome extension API available', 'pass');
+
+        // Test 2: Try to send a message
+        try {
+          chrome.runtime.sendMessage({action: 'test'}, (response) => {
+            if (chrome.runtime.lastError) {
+              log('❌ TEST 2: Extension message failed: ' + chrome.runtime.lastError.message, 'fail');
+              log('→ Try reloading the extension at chrome://extensions/', 'fail');
+            } else {
+              log('✅ TEST 2: Extension messaging works', 'pass');
+            }
+          });
+        } catch (e) {
+          log('❌ TEST 2: Error sending message: ' + e.message, 'fail');
+        }
+      } else {
+        log('❌ TEST 1: Chrome extension API NOT available', 'fail');
+        log('→ Extension might not be loaded', 'fail');
+      }
+
+      // Test 3: Check if quiz assistant script loaded
+      setTimeout(() => {
+        if (typeof window.QuizQuestionAssistant !== 'undefined') {
+          log('✅ TEST 3: Quiz Assistant script loaded', 'pass');
+
+          // Test 4: Check if assistant initialized
+          if (window.QuizQuestionAssistant.initialized) {
+            log('✅ TEST 4: Quiz Assistant initialized', 'pass');
+          } else {
+            log('❌ TEST 4: Quiz Assistant NOT initialized', 'fail');
+          }
+        } else {
+          log('❌ TEST 3: Quiz Assistant script NOT loaded', 'fail');
+          log('→ Check manifest.json includes quiz-question.js', 'fail');
+        }
+
+        // Test 5: Check for quiz questions on page
+        const containers = document.querySelectorAll('.quiz-assistant-container');
+        if (containers.length > 0) {
+          log(`✅ TEST 5: Found ${containers.length} quiz assistant UI(s) on page`, 'pass');
+        } else {
+          log('❌ TEST 5: No quiz assistant UI found on page', 'fail');
+          log('→ Extension might not be detecting questions', 'fail');
+        }
+
+        // Test 6: Check for questions
+        const questions = document.querySelectorAll('.question');
+        if (questions.length > 0) {
+          log(`✅ TEST 6: Found ${questions.length} question(s) on page`, 'pass');
+        } else {
+          log('⚠️  TEST 6: No .question elements found', 'info');
+          log('→ This is OK for diagnostic page, but needed for real quiz', 'info');
+        }
+      }, 500);
+    }
+
+    // Auto-run tests after 1 second
+    setTimeout(runTests, 1000);
+  </script>
+
+  <hr style="margin: 30px 0; border-color: #444;">
+
+  <h2>📋 Manual Checks</h2>
+  <div class="test">
+    <strong>1. Extension Status:</strong><br>
+    Go to chrome://extensions/<br>
+    - Is "Quiz Assistant" enabled? ✓ ON<br>
+    - Any errors shown? Click "Errors" if present
+  </div>
+
+  <div class="test">
+    <strong>2. Files Present:</strong><br>
+    Check these files exist:<br>
+    - quiz-question/quiz-question.js ✓<br>
+    - quiz-question/quiz-question.css ✓<br>
+    - manifest.json includes both files ✓
+  </div>
+
+  <div class="test">
+    <strong>3. Console Errors:</strong><br>
+    Press F12 → Console tab<br>
+    - Any red errors?<br>
+    - Look for "QuizQuestionAssistant" messages
+  </div>
+
+  <!-- Add a test question -->
+  <div style="margin-top: 30px; background: white; color: black; padding: 20px; border-radius: 8px;">
+    <h3>Test Question (for UI detection)</h3>
+    <div class="question" id="test-question">
+      <div class="question_text">
+        This is a test question. If the extension is working, you should see a blue "💡 Ask a question about this problem" box appear below this text.
+      </div>
+    </div>
+  </div>
+</body>
+</html>

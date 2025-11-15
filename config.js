@@ -1,4 +1,5 @@
 // Configuration file for the Chrome Extension
+// This file is loaded via importScripts in the service worker
 
 const CONFIG = {
   // Backend API Configuration
@@ -20,8 +21,3 @@ const CONFIG = {
     'Content-Type': 'application/json'
   }
 };
-
-// Export for use in other scripts
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = CONFIG;
-}
