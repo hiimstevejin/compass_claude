@@ -11,7 +11,9 @@ const CONFIG = {
     EVALUATE_ANSWER: '/api/quiz/evaluate-answer',
     GET_QUESTIONS: '/api/quiz/questions',
     SUBMIT_ANSWER: '/api/quiz/submit-answer',
-    CREATE_PROMPT: '/api/prompts'
+    CREATE_PROMPT: '/api/prompts',
+    GENERATE_REPORT: '/api/reports/generate',
+    CHAT_REPORT: '/api/reports/chat'
   },
 
   // Request Configuration

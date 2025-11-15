@@ -32,6 +32,11 @@
         "instructor-settings/instructor-content.js"
       ],
       "css": ["instructor-settings/inject-prompt-box.css"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["quiz-report/quiz-report.js"],
+      "css": ["quiz-report/quiz-report.css"]
     }
   ],
   "permissions": ["storage", "activeTab"],
