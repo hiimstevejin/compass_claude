@@ -11,6 +11,7 @@ const CONFIG = {
     CREATE_PROMPT: "/api/prompts",
     GENERATE_REPORT: "/api/reports/generate",
     CHAT_REPORT: "/api/reports/chat",
+    ANALYZE_ASSIGNMENT: "/api/diagnostics/analyze",
   },
   REQUEST_TIMEOUT: 30000,
   DEFAULT_HEADERS: {
@@ -206,14 +207,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === "generateReport") {
-    // Handle report generation - send to backend server
+    // Handle report generation - send to backend server (diagnostics)
     console.log("Generating report:", request);
 
     const payload = {
       assignment_id: request.assignment_id,
     };
 
-    makeBackendRequest(CONFIG.ENDPOINTS.GENERATE_REPORT, payload)
+    // Use the new diagnostics/analyze endpoint
+    makeBackendRequest(CONFIG.ENDPOINTS.ANALYZE_ASSIGNMENT, payload)
       .then((result) => {
         if (result.success) {
           sendResponse({

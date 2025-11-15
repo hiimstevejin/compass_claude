@@ -214,40 +214,148 @@ class QuizReportGenerator {
 
     if (!reportContent) return;
 
-    // Format the report data
-    const reportText = data.report || data.overview || JSON.stringify(data, null, 2);
+    // Build HTML for the new diagnostics format
+    let html = '';
 
-    // Convert to HTML with basic formatting
-    const formattedReport = this.formatReportText(reportText);
-    reportContent.innerHTML = formattedReport;
+    // Show assignment info and total students
+    if (data.assignment_id || data.total_students) {
+      html += '<div class="report-metadata">';
+      if (data.assignment_id) {
+        html += `<p><strong>Assignment ID:</strong> ${data.assignment_id}</p>`;
+      }
+      if (data.total_students !== undefined) {
+        html += `<p><strong>Total Students:</strong> ${data.total_students}</p>`;
+      }
+      html += '</div><hr>';
+    }
+
+    // Display overview
+    if (data.overview) {
+      html += '<div class="report-section">';
+      html += '<h3>Overview</h3>';
+      html += this.formatReportText(data.overview);
+      html += '</div>';
+    }
+
+    // Display statistics (formatted as markdown)
+    if (data.statistics) {
+      html += '<div class="report-section">';
+      html += '<h3>Statistics</h3>';
+      html += this.formatMarkdown(data.statistics);
+      html += '</div>';
+    }
+
+    // Fallback for other formats
+    if (!data.overview && !data.statistics) {
+      const reportText = data.report || JSON.stringify(data, null, 2);
+      html = this.formatReportText(reportText);
+    }
+
+    reportContent.innerHTML = html;
   }
 
   // Format report text to HTML
   formatReportText(text) {
+    if (!text) return '';
+
     // Split by newlines and create paragraphs
     const lines = text.split('\n');
     let html = '';
+    let inList = false;
 
     for (const line of lines) {
       if (line.trim() === '') {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
         continue;
       }
 
       // Check if line is a heading (starts with # or is all caps)
       if (line.startsWith('#')) {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
         const level = line.match(/^#+/)[0].length;
         const text = line.replace(/^#+\s*/, '');
         html += `<h${Math.min(level + 2, 6)}>${text}</h${Math.min(level + 2, 6)}>`;
       } else if (line.trim().match(/^[A-Z\s]+:/) && line.length < 100) {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
         html += `<h4>${line.trim()}</h4>`;
       } else if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
+        if (!inList) {
+          html += '<ul>';
+          inList = true;
+        }
         html += `<li>${line.trim().substring(1).trim()}</li>`;
       } else {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
         html += `<p>${line}</p>`;
       }
     }
 
+    if (inList) {
+      html += '</ul>';
+    }
+
     return html;
+  }
+
+  // Format markdown to HTML (basic markdown support)
+  formatMarkdown(text) {
+    if (!text) return '';
+
+    let html = text;
+
+    // Headers
+    html = html.replace(/^### (.*$)/gim, '<h4>$1</h4>');
+    html = html.replace(/^## (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^# (.*$)/gim, '<h2>$1</h2>');
+
+    // Bold
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
+
+    // Italic
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+
+    // Lists
+    const lines = html.split('\n');
+    let formattedLines = [];
+    let inList = false;
+
+    for (let line of lines) {
+      if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
+        if (!inList) {
+          formattedLines.push('<ul>');
+          inList = true;
+        }
+        formattedLines.push(`<li>${line.trim().substring(1).trim()}</li>`);
+      } else {
+        if (inList) {
+          formattedLines.push('</ul>');
+          inList = false;
+        }
+        if (line.trim()) {
+          formattedLines.push(`<p>${line}</p>`);
+        }
+      }
+    }
+
+    if (inList) {
+      formattedLines.push('</ul>');
+    }
+
+    return formattedLines.join('\n');
   }
 
   // Send chat message
