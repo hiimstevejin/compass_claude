@@ -12,36 +12,37 @@
 }
 
 .instructor-prompt-inline-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
+  background: #ffffff;
+  border-radius: 8px;
   padding: 0;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .instructor-prompt-inline-card:hover {
-  box-shadow: 0 6px 30px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .instructor-prompt-header-inline {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  padding: 15px 20px;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid #dbeafe;
 }
 
 .instructor-prompt-header-inline h3 {
   margin: 0;
   color: white;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: 0.025em;
 }
 
 .instructor-prompt-minimize {
@@ -67,8 +68,8 @@
 }
 
 .instructor-prompt-content-inline {
-  background: white;
-  padding: 25px;
+  background: #f9fafb;
+  padding: 28px;
   transition: all 0.3s ease;
 }
 
@@ -79,9 +80,9 @@
 .instructor-hint {
   display: block;
   font-size: 12px;
-  color: #666;
+  color: #6b7280;
   font-weight: normal;
-  margin-top: 5px;
+  margin-top: 6px;
   font-style: italic;
 }
 
@@ -112,7 +113,7 @@
 }
 
 .instructor-prompt-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
   color: white;
   padding: 15px 20px;
   border-radius: 12px 12px 0 0;
@@ -158,62 +159,71 @@
 }
 
 .instructor-form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
 }
 
 .instructor-form-group label {
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: #1f2937;
   margin-bottom: 8px;
 }
 
 .instructor-prompt-textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
   font-family: inherit;
   resize: vertical;
-  transition: border-color 0.3s ease;
+  transition: all 0.2s ease;
   box-sizing: border-box;
+  background: #ffffff;
 }
 
 .instructor-prompt-textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .instructor-char-count {
   display: block;
-  font-size: 12px;
-  color: #999;
-  margin-top: 5px;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 6px;
   text-align: right;
+  font-weight: 500;
 }
 
 .instructor-btn {
   width: 100%;
-  padding: 12px 20px;
+  padding: 14px 20px;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-family: inherit;
+  margin-top: 8px;
 }
 
 .instructor-btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   color: white;
 }
 
 .instructor-btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .instructor-btn-primary:active {
@@ -248,7 +258,7 @@
 .instructor-llm-response.loading {
   display: block;
   text-align: center;
-  color: #667eea;
+  color: #2563eb;
   font-style: italic;
 }
 
@@ -276,7 +286,7 @@
 }
 
 .instructor-llm-response::-webkit-scrollbar-thumb {
-  background: #667eea;
+  background: #2563eb;
   border-radius: 10px;
 }
 
@@ -290,7 +300,7 @@
 }
 
 .instructor-prompt-content::-webkit-scrollbar-thumb {
-  background: #667eea;
+  background: #2563eb;
   border-radius: 10px;
 }
 
@@ -301,13 +311,13 @@
   right: 20px;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
   transition: all 0.3s ease;
   z-index: 999998;
   font-size: 24px;
@@ -315,7 +325,7 @@
 
 .instructor-prompt-toggle:hover {
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 }
 
 .instructor-prompt-toggle:active {

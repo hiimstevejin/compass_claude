@@ -9,7 +9,8 @@ const CONFIG = {
     PROCESS_PROMPT: '/api/quiz/process-prompt',
     EVALUATE_ANSWER: '/api/quiz/evaluate-answer',
     GET_QUESTIONS: '/api/quiz/questions',
-    SUBMIT_ANSWER: '/api/quiz/submit-answer'
+    SUBMIT_ANSWER: '/api/quiz/submit-answer',
+    CREATE_PROMPT: '/api/prompts'
   },
 
   // Request Configuration

@@ -58,27 +58,52 @@ class InstructorPromptBox {
       container.innerHTML = `
         <div class="instructor-prompt-inline-card">
           <div class="instructor-prompt-header-inline">
-            <h3>🤖 AI Quiz Assistant - Enter Your Prompt</h3>
+            <h3>AI Assistant</h3>
             <button class="instructor-prompt-minimize" id="minimizePromptBox" title="Minimize">−</button>
           </div>
 
           <div class="instructor-prompt-content-inline">
             <div class="instructor-form-group">
+              <label for="instructorAiRole">
+                <strong>AI Role:</strong>
+                <span class="instructor-hint">Example: AI acts as the CFO of Anthropic for student consulting project</span>
+              </label>
+              <textarea
+                id="instructorAiRole"
+                class="instructor-prompt-textarea"
+                placeholder="Teaching Assistant that guides students without telling them the answer."
+                rows="2"
+              >Teaching Assistant that guides students without telling them the answer.</textarea>
+            </div>
+
+            <div class="instructor-form-group">
+              <label for="instructorBoundary">
+                <strong>Boundaries - What AI Can Tell Students:</strong>
+                <span class="instructor-hint">Define what information the AI is allowed to share with students</span>
+              </label>
+              <textarea
+                id="instructorBoundary"
+                class="instructor-prompt-textarea"
+                placeholder="Example: 'Students can ask about concepts and definitions, but cannot get direct answers to exam questions or step-by-step solutions.'"
+                rows="3"
+              ></textarea>
+            </div>
+
+            <div class="instructor-form-group">
               <label for="instructorCustomPrompt">
-                <strong>Describe what you want to generate:</strong>
-                <span class="instructor-hint">Example: "Create 5 multiple choice questions about photosynthesis for high school biology"</span>
+                <strong>Additional Instructions (Optional):</strong>
+                <span class="instructor-hint">Any other specific instructions for the AI</span>
               </label>
               <textarea
                 id="instructorCustomPrompt"
                 class="instructor-prompt-textarea"
-                placeholder="Type your prompt here to generate quiz content with AI..."
-                rows="4"
+                placeholder="Type any additional instructions here..."
+                rows="3"
               ></textarea>
-              <span class="instructor-char-count" id="instructorCharCount">0 characters</span>
             </div>
 
             <button id="instructorSendPrompt" class="instructor-btn instructor-btn-primary">
-              ✨ Generate with AI
+              Save Setting
             </button>
 
             <div id="instructorLlmResponse" class="instructor-llm-response"></div>
@@ -114,7 +139,7 @@ class InstructorPromptBox {
         </div>
 
         <div class="instructor-prompt-toggle" id="togglePromptBox">
-          <span>📝</span>
+          <span>AI</span>
         </div>
       `;
     }
@@ -186,8 +211,6 @@ class InstructorPromptBox {
     const closeBtn = document.getElementById('closePromptBox');
     const minimizeBtn = document.getElementById('minimizePromptBox');
     const sendBtn = document.getElementById('instructorSendPrompt');
-    const textarea = document.getElementById('instructorCustomPrompt');
-    const charCount = document.getElementById('instructorCharCount');
 
     // Toggle visibility (floating mode)
     if (toggleBtn) {
@@ -207,13 +230,6 @@ class InstructorPromptBox {
     // Send prompt button
     if (sendBtn) {
       sendBtn.addEventListener('click', () => this.sendPrompt());
-    }
-
-    // Character counter
-    if (textarea) {
-      textarea.addEventListener('input', () => {
-        charCount.textContent = `${textarea.value.length} characters`;
-      });
     }
 
     // Drag functionality only for floating mode
@@ -300,58 +316,146 @@ class InstructorPromptBox {
     }
   }
 
-  // Send prompt to backend
+  // Extract assignment ID from URL
+  extractAssignmentId() {
+    const url = window.location.href;
+
+    // Try to extract quiz ID
+    const quizMatch = url.match(/\/quizzes\/(\d+|new)/);
+    if (quizMatch) {
+      return quizMatch[1] === 'new' ? `quiz_new_${Date.now()}` : `quiz_${quizMatch[1]}`;
+    }
+
+    // Try to extract assignment ID
+    const assignmentMatch = url.match(/\/assignments\/(\d+|new)/);
+    if (assignmentMatch) {
+      return assignmentMatch[1] === 'new' ? `assignment_new_${Date.now()}` : `assignment_${assignmentMatch[1]}`;
+    }
+
+    // Fallback to page title
+    return `assignment_${document.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`;
+  }
+
+  // Extract metadata from Canvas page
+  extractMetadata() {
+    const metadata = {
+      pageUrl: window.location.href,
+      pageTitle: document.title,
+      timestamp: new Date().toISOString()
+    };
+
+    // Try to extract course name
+    const courseElement = document.querySelector('.course-title, [data-testid="course-name"], .title');
+    if (courseElement) {
+      metadata.course = courseElement.textContent.trim();
+    }
+
+    // Try to extract professor/user name
+    const userElement = document.querySelector('.user_name, [data-testid="user-name"], .profile-link');
+    if (userElement) {
+      metadata.professor = userElement.textContent.trim();
+    }
+
+    // Try to extract quiz/assignment title
+    const titleElement = document.querySelector('#quiz_title, [name="assignment[name]"], .quiz-header h1, .title');
+    if (titleElement) {
+      metadata.exam_title = titleElement.value || titleElement.textContent.trim();
+    }
+
+    // Try to extract quiz/assignment content
+    const contentElement = document.querySelector('#quiz_description, [name="assignment[description]"], .quiz_content');
+    if (contentElement) {
+      metadata.exam_content = contentElement.value || contentElement.textContent.trim();
+    }
+
+    return metadata;
+  }
+
+  // Send prompt to backend via background script
   async sendPrompt() {
     const textarea = document.getElementById('instructorCustomPrompt');
+    const roleTextarea = document.getElementById('instructorAiRole');
+    const boundaryTextarea = document.getElementById('instructorBoundary');
     const sendBtn = document.getElementById('instructorSendPrompt');
     const responseDiv = document.getElementById('instructorLlmResponse');
 
-    const prompt = textarea.value.trim();
+    const additionalInstructions = textarea ? textarea.value.trim() : '';
+    const aiRole = roleTextarea ? roleTextarea.value.trim() : 'Teaching Assistant that guides students without telling them the answer.';
+    const boundary = boundaryTextarea ? boundaryTextarea.value.trim() : '';
 
-    if (!prompt) {
-      this.showResponse('Please enter a prompt to send.', 'error');
+    // Validate required fields
+    if (!aiRole) {
+      this.showResponse('Please specify the AI role.', 'error');
+      return;
+    }
+
+    if (!boundary) {
+      this.showResponse('Please specify the boundaries for what AI can tell students.', 'error');
       return;
     }
 
     // Show loading state
-    this.showResponse('Sending prompt to backend LLM...', 'loading');
+    this.showResponse('Sending prompt to backend...', 'loading');
     sendBtn.disabled = true;
     sendBtn.textContent = 'Sending...';
 
     try {
-      const response = await fetch(`${this.config.backendUrl}${this.config.endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          prompt: prompt,
-          timestamp: new Date().toISOString(),
-          pageUrl: window.location.href,
-          pageTitle: document.title
-        })
-      });
+      // Extract assignment information
+      const assignment_id = this.extractAssignmentId();
+      const metadata = this.extractMetadata();
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Add AI role and boundary to metadata
+      metadata.ai_role = aiRole;
+      metadata.boundary = boundary;
+
+      // Construct comprehensive professor instructions
+      let professorInstructions = `AI Role: ${aiRole}\n\nBoundaries: ${boundary}`;
+      if (additionalInstructions) {
+        professorInstructions += `\n\nAdditional Instructions: ${additionalInstructions}`;
       }
 
-      const data = await response.json();
+      // Send message to background script
+      chrome.runtime.sendMessage({
+        action: 'createPrompt',
+        assignment_id: assignment_id,
+        professor_instructions: professorInstructions,
+        metadata: metadata
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Chrome runtime error:', chrome.runtime.lastError);
+          this.showResponse(
+            `Error: ${chrome.runtime.lastError.message}\n\nPlease reload the extension.`,
+            'error'
+          );
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Save Setting';
+          return;
+        }
 
-      // Display the response
-      const responseText = data.response || JSON.stringify(data, null, 2);
-      this.showResponse(`Backend Response:\n\n${responseText}`, 'success');
+        if (response && response.success) {
+          const data = response.data;
+          const responseText = `Prompt Created Successfully!\n\nAssignment ID: ${data.assignment_id}\nStatus: ${data.status}\n\nPreview: ${data.prompt_preview || 'No preview available'}`;
+          this.showResponse(responseText, 'success');
+          console.log('Prompt created:', data);
+        } else {
+          this.showResponse(
+            `Error: ${response?.message || 'Unknown error occurred'}\n\nMake sure the backend server is running.`,
+            'error'
+          );
+        }
 
-      console.log('Backend response:', data);
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Save Setting';
+      });
+
     } catch (error) {
-      console.error('Error sending prompt to backend:', error);
+      console.error('Error sending prompt:', error);
       this.showResponse(
-        `Error: ${error.message}\n\nMake sure the backend server is running at ${this.config.backendUrl}`,
+        `Error: ${error.message}\n\nPlease try again.`,
         'error'
       );
-    } finally {
       sendBtn.disabled = false;
-      sendBtn.textContent = 'Send to Backend LLM';
+      sendBtn.textContent = 'Save Setting';
     }
   }
 
