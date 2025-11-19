@@ -151,10 +151,11 @@ function showStatus(message, type) {
 
   setTimeout(() => {
     statusMessage.className = 'status-message';
-  }, 3000);
+  }, 5000);
 }
 
-// Send prompt to backend LLM
+// instructor-settings.js
+// // Send prompt to backend LLM
 async function sendPromptToBackend() {
   const prompt = customPrompt.value.trim();
 
@@ -170,7 +171,7 @@ async function sendPromptToBackend() {
 
   try {
     // Load config from the parent directory
-    const BACKEND_URL = 'http://localhost:3000';
+    const BACKEND_URL = 'http://localhost:5000';
     const ENDPOINT = '/api/quiz/process-prompt';
 
     const response = await fetch(`${BACKEND_URL}${ENDPOINT}`, {
@@ -183,6 +184,8 @@ async function sendPromptToBackend() {
         timestamp: new Date().toISOString()
       })
     });
+
+    console.log(response.status, response.statusText)
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -197,7 +200,7 @@ async function sendPromptToBackend() {
     console.log('Backend response:', data);
   } catch (error) {
     console.error('Error sending prompt to backend:', error);
-    showLLMResponse(`Error: ${error.message}\n\nMake sure the backend server is running at http://localhost:3000`, 'error');
+    showLLMResponse(`Error: ${error.message}\n\nMake sure the backend server is running at http://localhost:5000`, 'error');
   } finally {
     sendPromptBtn.disabled = false;
     sendPromptBtn.textContent = 'Send to Backend LLM';

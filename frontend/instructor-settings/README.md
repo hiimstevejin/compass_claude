@@ -87,7 +87,7 @@ The extension automatically detects Canvas quiz pages by looking for:
 ## Backend Integration
 
 The prompt box sends HTTP POST requests to:
-- **URL**: `http://localhost:3000/api/quiz/process-prompt`
+- **URL**: `http://localhost:5000/api/quiz/process-prompt`
 - **Method**: POST
 - **Headers**: `Content-Type: application/json`
 - **Body**:
@@ -116,7 +116,7 @@ Or any JSON object that will be displayed to the user.
 The backend URL is configured in `/config.js`:
 ```javascript
 const CONFIG = {
-  BACKEND_URL: 'http://localhost:3000',
+  BACKEND_URL: 'http://localhost:5000',
   ENDPOINTS: {
     PROCESS_PROMPT: '/api/quiz/process-prompt'
   }
@@ -199,7 +199,7 @@ This ensures the prompt box appears at the top of the relevant content.
 3. The box should appear above the quiz title or questions area
 
 ### Backend connection errors
-1. Ensure backend server is running at `http://localhost:3000`
+1. Ensure backend server is running at `http://localhost:5000`
 2. Check CORS settings on the backend
 3. Verify the endpoint `/api/quiz/process-prompt` exists
 4. Check browser console for specific error messages

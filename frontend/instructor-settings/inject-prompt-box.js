@@ -7,7 +7,7 @@ class InstructorPromptBox {
     this.container = null;
     this.mode = mode; // 'inline' for Canvas integration, 'floating' for other pages
     this.config = {
-      backendUrl: 'http://localhost:3000',
+      backendUrl: 'http://localhost:5000',
       endpoint: '/api/quiz/process-prompt'
     };
   }
@@ -372,6 +372,7 @@ class InstructorPromptBox {
   }
 
   // Send prompt to backend via background script
+  // Send prompt to backend via background script
   async sendPrompt() {
     const textarea = document.getElementById('instructorCustomPrompt');
     const roleTextarea = document.getElementById('instructorAiRole');
@@ -421,43 +422,118 @@ class InstructorPromptBox {
         professor_instructions: professorInstructions,
         metadata: metadata
       }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.error('Chrome runtime error:', chrome.runtime.lastError);
-          this.showResponse(
-            `Error: ${chrome.runtime.lastError.message}\n\nPlease reload the extension.`,
-            'error'
-          );
-          sendBtn.disabled = false;
-          sendBtn.textContent = 'Save Setting';
-          return;
-        }
+        // IGNORE ACTUAL RESPONSE/ERRORS
+        // Simulate success after 3 seconds
+        setTimeout(() => {
+            const responseText = `Prompt Created Successfully!\n\nAssignment ID: ${assignment_id}\nStatus: Simulated Success`;
+            this.showResponse(responseText, 'success');
+            console.log('Simulated success for assignment:', assignment_id);
 
-        if (response && response.success) {
-          const data = response.data;
-          const responseText = `Prompt Created Successfully!\n\nAssignment ID: ${data.assignment_id}\nStatus: ${data.status}\n\nPreview: ${data.prompt_preview || 'No preview available'}`;
-          this.showResponse(responseText, 'success');
-          console.log('Prompt created:', data);
-        } else {
-          this.showResponse(
-            `Error: ${response?.message || 'Unknown error occurred'}\n\nMake sure the backend server is running.`,
-            'error'
-          );
-        }
-
-        sendBtn.disabled = false;
-        sendBtn.textContent = 'Save Setting';
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Save Setting';
+        }, 1);
       });
 
     } catch (error) {
       console.error('Error sending prompt:', error);
-      this.showResponse(
-        `Error: ${error.message}\n\nPlease try again.`,
-        'error'
-      );
-      sendBtn.disabled = false;
-      sendBtn.textContent = 'Save Setting';
+      // Even if the catch block triggers, we might want to simulate success based on your request,
+      // but usually catch implies the message failed to send entirely. 
+      // Since you asked to "return success after 3 seconds" specifically regarding the API call check:
+      setTimeout(() => {
+          const responseText = `Prompt Created Successfully!\n\nStatus: Simulated Success (Recovered from Error)`;
+          this.showResponse(responseText, 'success');
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Save Setting';
+      }, 3000);
     }
   }
+
+  // async sendPrompt() {
+  //   const textarea = document.getElementById('instructorCustomPrompt');
+  //   const roleTextarea = document.getElementById('instructorAiRole');
+  //   const boundaryTextarea = document.getElementById('instructorBoundary');
+  //   const sendBtn = document.getElementById('instructorSendPrompt');
+  //   const responseDiv = document.getElementById('instructorLlmResponse');
+
+  //   const additionalInstructions = textarea ? textarea.value.trim() : '';
+  //   const aiRole = roleTextarea ? roleTextarea.value.trim() : 'Teaching Assistant that guides students without telling them the answer.';
+  //   const boundary = boundaryTextarea ? boundaryTextarea.value.trim() : '';
+
+  //   // Validate required fields
+  //   if (!aiRole) {
+  //     this.showResponse('Please specify the AI role.', 'error');
+  //     return;
+  //   }
+
+  //   if (!boundary) {
+  //     this.showResponse('Please specify the boundaries for what AI can tell students.', 'error');
+  //     return;
+  //   }
+
+  //   // Show loading state
+  //   this.showResponse('Sending prompt to backend...', 'loading');
+  //   sendBtn.disabled = true;
+  //   sendBtn.textContent = 'Sending...';
+
+  //   try {
+  //     // Extract assignment information
+  //     const assignment_id = this.extractAssignmentId();
+  //     const metadata = this.extractMetadata();
+
+  //     // Add AI role and boundary to metadata
+  //     metadata.ai_role = aiRole;
+  //     metadata.boundary = boundary;
+
+  //     // Construct comprehensive professor instructions
+  //     let professorInstructions = `AI Role: ${aiRole}\n\nBoundaries: ${boundary}`;
+  //     if (additionalInstructions) {
+  //       professorInstructions += `\n\nAdditional Instructions: ${additionalInstructions}`;
+  //     }
+
+  //     // Send message to background script
+  //     chrome.runtime.sendMessage({
+  //       action: 'createPrompt',
+  //       assignment_id: assignment_id,
+  //       professor_instructions: professorInstructions,
+  //       metadata: metadata
+  //     }, (response) => {
+  //       if (chrome.runtime.lastError) {
+  //         console.error('Chrome runtime error:', chrome.runtime.lastError);
+  //         this.showResponse(
+  //           `Error: ${chrome.runtime.lastError.message}\n\nPlease reload the extension.`,
+  //           'error'
+  //         );
+  //         sendBtn.disabled = false;
+  //         sendBtn.textContent = 'Save Setting';
+  //         return;
+  //       }
+
+  //       if (response && response.success) {
+  //         const data = response.data;
+  //         const responseText = `Prompt Created Successfully!\n\nAssignment ID: ${data.assignment_id}\nStatus: ${data.status}\n\nPreview: ${data.prompt_preview || 'No preview available'}`;
+  //         this.showResponse(responseText, 'success');
+  //         console.log('Prompt created:', data);
+  //       } else {
+  //         this.showResponse(
+  //           `Error: ${response?.message || 'Unknown error occurred'}\n\nMake sure the backend server is running.`,
+  //           'error'
+  //         );
+  //       }
+
+  //       sendBtn.disabled = false;
+  //       sendBtn.textContent = 'Save Setting';
+  //     });
+
+  //   } catch (error) {
+  //     console.error('Error sending prompt:', error);
+  //     this.showResponse(
+  //       `Error: ${error.message}\n\nPlease try again.`,
+  //       'error'
+  //     );
+  //     sendBtn.disabled = false;
+  //     sendBtn.textContent = 'Save Setting';
+  //   }
+  // }
 
   // Show response in the UI
   showResponse(message, type) {
